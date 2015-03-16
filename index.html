@@ -4,11 +4,11 @@
   <head>
     <meta charset='utf-8'>
     <meta http-equiv="X-UA-Compatible" content="chrome=1">
-    <meta name="description" content="Practical Machine Learning Course Project : R markdown and compiled HTML file describing my analysis for Practical Machine Learning Course Project.">
+    <meta name="description" content="Emil Zonta - Practical Machine Learning Course Project : R markdown and compiled HTML file describing my analysis for Practical Machine Learning Course Project.">
 
     <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
 
-    <title>Practical Machine Learning Course Project</title>
+    <title>Emil Zonta - Practical Machine Learning Course Project</title>
   </head>
 
   <body>
@@ -18,7 +18,7 @@
         <header class="inner">
           <a id="forkme_banner" href="https://github.com/emilzonta/PracticalMachineLearning">View on GitHub</a>
 
-          <h1 id="project_title">Practical Machine Learning Course Project</h1>
+          <h1 id="project_title">Emil Zonta - Practical Machine Learning Course Project</h1>
           <h2 id="project_tagline">R markdown and compiled HTML file describing my analysis for Practical Machine Learning Course Project.</h2>
 
             <section id="downloads">
@@ -31,17 +31,7 @@
     <!-- MAIN CONTENT -->
     <div id="main_content_wrap" class="outer">
       <section id="main_content" class="inner">
-        <hr>
-
-<p>title: "Emil Zonta - Practical Machine Learning Course Project"
-output:
-  html_document:
-    toc: true</p>
-
-<h2>
-<a id="----theme-united" class="anchor" href="#----theme-united" aria-hidden="true"><span class="octicon octicon-link"></span></a>    theme: united</h2>
-
-<p>First of all we load the only package that we need and set the seed for reproducible results.</p>
+        <p>First of all we load the only package that we need and set the seed for reproducible results.</p>
 
 <div class="highlight highlight-r"><pre>library(<span class="pl-vo">caret</span>)
 set.seed(<span class="pl-c1">121212</span>)</pre></div>
@@ -122,15 +112,14 @@ sum(<span class="pl-vo">testing</span><span class="pl-k">$</span><span class="pl
 
 <p>We show as an example a plot of the two most important predictors which puts in evidence where the prediction is true or false.</p>
 
-<pre lang="r,"><code>qplot(roll_belt,yaw_belt,colour=predWrong,data=testing)
-</code></pre>
+<div class="highlight highlight-r"><pre>qplot(<span class="pl-vo">roll_belt</span>,<span class="pl-vo">yaw_belt</span>,<span class="pl-v">colour</span><span class="pl-k">=</span><span class="pl-vo">predWrong</span>,<span class="pl-v">data</span><span class="pl-k">=</span><span class="pl-vo">testing</span>)</pre></div>
       </section>
     </div>
 
     <!-- FOOTER  -->
     <div id="footer_wrap" class="outer">
       <footer class="inner">
-        <p class="copyright">Practical Machine Learning Course Project maintained by <a href="https://github.com/emilzonta">emilzonta</a></p>
+        <p class="copyright">Emil Zonta - Practical Machine Learning Course Project maintained by <a href="https://github.com/emilzonta">emilzonta</a></p>
         <p>Published with <a href="https://pages.github.com">GitHub Pages</a></p>
       </footer>
     </div>
