@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <meta name="description" content="Practical Machine Learning Course Project : R markdown and compiled HTML file describing my analysis for Practical Machine Learning Course Project.">
+
+    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
+
+    <title>Practical Machine Learning Course Project</title>
+  </head>
+
+  <body>
+
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <header class="inner">
+          <a id="forkme_banner" href="https://github.com/emilzonta/PracticalMachineLearning">View on GitHub</a>
+
+          <h1 id="project_title">Practical Machine Learning Course Project</h1>
+          <h2 id="project_tagline">R markdown and compiled HTML file describing my analysis for Practical Machine Learning Course Project.</h2>
+
+            <section id="downloads">
+              <a class="zip_download_link" href="https://github.com/emilzonta/PracticalMachineLearning/zipball/master">Download this project as a .zip file</a>
+              <a class="tar_download_link" href="https://github.com/emilzonta/PracticalMachineLearning/tarball/master">Download this project as a tar.gz file</a>
+            </section>
+        </header>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer">
+      <section id="main_content" class="inner">
+        <hr>
+
+<p>title: "Emil Zonta - Practical Machine Learning Course Project"
+output:
+  html_document:
+    toc: true</p>
+
+<h2>
+<a id="----theme-united" class="anchor" href="#----theme-united" aria-hidden="true"><span class="octicon octicon-link"></span></a>    theme: united</h2>
+
+<p>First of all we load the only package that we need and set the seed for reproducible results.</p>
+
+<div class="highlight highlight-r"><pre>library(<span class="pl-vo">caret</span>)
+set.seed(<span class="pl-c1">121212</span>)</pre></div>
+
+<p>Analyzing the raw data in the <em>pml-Training.csv</em> file we notice that there are a lot of <strong>missing</strong>, <strong>NA</strong>'s and <strong>#DIV/0!</strong> values.</p>
+
+<p>Then we load the data considering all of these values as NA's, to facilitate our task.</p>
+
+<div class="highlight highlight-r"><pre><span class="pl-vo">pmlTraining</span> <span class="pl-k">&lt;-</span> read.table(<span class="pl-s1"><span class="pl-pds">"</span>C://Users/emil.zonta/Desktop/pml-training.csv<span class="pl-pds">"</span></span>, <span class="pl-v">header</span><span class="pl-k">=</span><span class="pl-c1">TRUE</span> , <span class="pl-v">sep</span><span class="pl-k">=</span><span class="pl-s1"><span class="pl-pds">"</span>,<span class="pl-pds">"</span></span> , <span class="pl-v">na.strings</span><span class="pl-k">=</span>c(<span class="pl-s1"><span class="pl-pds">"</span><span class="pl-pds">"</span></span>,<span class="pl-s1"><span class="pl-pds">"</span>#DIV/0!<span class="pl-pds">"</span></span>,<span class="pl-s1"><span class="pl-pds">"</span>NA<span class="pl-pds">"</span></span>))
+dim(<span class="pl-vo">pmlTraining</span>)</pre></div>
+
+<p>So we have 160 columns but investigating a few with <code>summary(pmlTraining)</code>, and looking at some portions of the data,
+for example with a <em>unix-style</em> command like <code>tail(head(pmlTraining,n=29),n=10)</code>,
+we easily find that there are 19216 rows s.t. <code>new_window == 'no'</code> and this is exactly the amount of NA's in many columns:
+these columns have a non-missing value only correspondingly to <code>new_window == 'yes'</code>.</p>
+
+<p>We don't want to discard rows since some of their columns are useful, but we discard all of these columns with too many NA's
+since their meaningless for prediction. We filter our data using 19216 as a threshold:</p>
+
+<div class="highlight highlight-r"><pre><span class="pl-vo">pmlTraining</span> <span class="pl-k">&lt;-</span> <span class="pl-vo">pmlTraining</span>[,colSums(is.na(<span class="pl-vo">pmlTraining</span>)) <span class="pl-k">&lt;</span> <span class="pl-c1">19216</span>]
+dim(<span class="pl-vo">pmlTraining</span>)</pre></div>
+
+<p>There are 60 columns left and now we just want to be sure that there are no remaining rows with NA's.
+We verify that all the rows are complete using the following combination of <code>any</code> and <code>is.na</code>:</p>
+
+<div class="highlight highlight-r"><pre><span class="pl-vo">rowWithNAs</span> <span class="pl-k">&lt;-</span> apply(<span class="pl-vo">pmlTraining</span>, <span class="pl-c1">1</span>, <span class="pl-k">function</span>(<span class="pl-vo">x</span>){any(is.na(<span class="pl-vo">x</span>))})
+sum(<span class="pl-vo">rowWithNAs</span>)</pre></div>
+
+<p>As shown the number of remaining rows with NA's is now equal to <strong>0</strong>.</p>
+
+<p>We still need to do some data-cleaning since there still are some useless columns like the already mentioned 
+<em>new_window</em>, <em>num_window</em>, the index <em>X</em>, <em>user_name</em> and <em>timestamps</em>.
+All of these columns have nothing to do with our prediction problem and we need to avoid them.</p>
+
+<div class="highlight highlight-r"><pre><span class="pl-vo">pmlTraining</span> <span class="pl-k">&lt;-</span> subset(<span class="pl-vo">pmlTraining</span>,<span class="pl-v">select</span><span class="pl-k">=</span><span class="pl-k">-</span>c(<span class="pl-vo">X</span>,<span class="pl-vo">user_name</span>,<span class="pl-vo">raw_timestamp_part_1</span>,<span class="pl-vo">raw_timestamp_part_2</span>,<span class="pl-vo">cvtd_timestamp</span>,<span class="pl-vo">new_window</span>,<span class="pl-vo">num_window</span>))
+dim(<span class="pl-vo">pmlTraining</span>)</pre></div>
+
+<p>Finally we have our <strong>52</strong> predictors and the outcome <em>classe</em>, which already is a factor:</p>
+
+<div class="highlight highlight-r"><pre>is.factor(<span class="pl-vo">pmlTraining</span><span class="pl-k">$</span><span class="pl-vo">classe</span>)</pre></div>
+
+<p>Ok, now that our data is clean we can proceed splitting in training and testing sets.</p>
+
+<div class="highlight highlight-r"><pre><span class="pl-vo">inTrain</span>  <span class="pl-k">&lt;-</span> createDataPartition(<span class="pl-vo">pmlTraining</span><span class="pl-k">$</span><span class="pl-vo">classe</span>, <span class="pl-v">p</span><span class="pl-k">=</span><span class="pl-c1">0.7</span>, <span class="pl-v">list</span><span class="pl-k">=</span><span class="pl-c1">FALSE</span>)
+<span class="pl-vo">training</span> <span class="pl-k">&lt;-</span> <span class="pl-vo">pmlTraining</span>[<span class="pl-vo">inTrain</span>,]
+<span class="pl-vo">testing</span>  <span class="pl-k">&lt;-</span> <span class="pl-vo">pmlTraining</span>[<span class="pl-k">-</span><span class="pl-vo">inTrain</span>,]</pre></div>
+
+<p>Before fitting with <code>train()</code>, in order to speed it up, it's useful to set some <em>computational nuances options</em>
+with the <code>trainControl()</code> function of <em>caret</em> package. 
+We set the method to be <em>cross-validation</em> and 3 as the number of folds, which appears to be enough.</p>
+
+<div class="highlight highlight-r"><pre><span class="pl-vo">speedUp</span> <span class="pl-k">&lt;-</span> trainControl(<span class="pl-v">method</span><span class="pl-k">=</span><span class="pl-s1"><span class="pl-pds">"</span>cv<span class="pl-pds">"</span></span>, <span class="pl-v">number</span><span class="pl-k">=</span><span class="pl-c1">3</span>)</pre></div>
+
+<p>So we are ready to make our first trial using <em>Random Forests</em>. We also evaluate processing time.</p>
+
+<div class="highlight highlight-r"><pre><span class="pl-vo">initTime</span>   <span class="pl-k">&lt;-</span> proc.time()
+<span class="pl-vo">modFit</span>     <span class="pl-k">&lt;-</span> train(<span class="pl-vo">training</span><span class="pl-k">$</span><span class="pl-vo">classe</span> <span class="pl-k">~</span> ., <span class="pl-v">data</span><span class="pl-k">=</span><span class="pl-vo">training</span>, <span class="pl-v">model</span><span class="pl-k">=</span><span class="pl-s1"><span class="pl-pds">"</span>rf<span class="pl-pds">"</span></span>, <span class="pl-v">trControl</span><span class="pl-k">=</span><span class="pl-vo">speedUp</span>)
+<span class="pl-vo">trainTime</span>  <span class="pl-k">&lt;-</span> proc.time() <span class="pl-k">-</span> <span class="pl-vo">initTime</span>; <span class="pl-vo">trainTime</span></pre></div>
+
+<p>Let's look at the model:</p>
+
+<div class="highlight highlight-r"><pre><span class="pl-vo">modFit</span><span class="pl-k">$</span><span class="pl-vo">finalModel</span></pre></div>
+
+<p>The model looks very accurate, but we need to cross-validate it using the testing partition.</p>
+
+<div class="highlight highlight-r"><pre><span class="pl-vo">testingPredict</span> <span class="pl-k">&lt;-</span> predict(<span class="pl-vo">modFit</span>, <span class="pl-v">newdata</span><span class="pl-k">=</span><span class="pl-vo">testing</span>)
+confusionMatrix(<span class="pl-vo">testing</span><span class="pl-k">$</span><span class="pl-vo">classe</span>, <span class="pl-vo">testingPredict</span>)</pre></div>
+
+<p>Hence the accuracy is pretty high, and so the out-of-sample error,
+i.e. the total amount of wrong predictions in the testing set, related to its length, is particularly small:</p>
+
+<div class="highlight highlight-r"><pre><span class="pl-vo">testing</span><span class="pl-k">$</span><span class="pl-vo">predWrong</span> <span class="pl-k">&lt;-</span> <span class="pl-vo">testingPredict</span> <span class="pl-k">!=</span> <span class="pl-vo">testing</span><span class="pl-k">$</span><span class="pl-vo">classe</span>
+sum(<span class="pl-vo">testing</span><span class="pl-k">$</span><span class="pl-vo">predWrong</span>) <span class="pl-k">/</span> length(<span class="pl-vo">testingPredict</span>)</pre></div>
+
+<p>Here we have a list of the most important predictors:</p>
+
+<div class="highlight highlight-r"><pre>varImp(<span class="pl-vo">modFit</span>)</pre></div>
+
+<p>We show as an example a plot of the two most important predictors which puts in evidence where the prediction is true or false.</p>
+
+<pre lang="r,"><code>qplot(roll_belt,yaw_belt,colour=predWrong,data=testing)
+</code></pre>
+      </section>
+    </div>
+
+    <!-- FOOTER  -->
+    <div id="footer_wrap" class="outer">
+      <footer class="inner">
+        <p class="copyright">Practical Machine Learning Course Project maintained by <a href="https://github.com/emilzonta">emilzonta</a></p>
+        <p>Published with <a href="https://pages.github.com">GitHub Pages</a></p>
+      </footer>
+    </div>
+
+    
+
+  </body>
+</html>
