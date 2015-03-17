@@ -31,7 +31,7 @@
     <!-- MAIN CONTENT -->
     <div id="main_content_wrap" class="outer">
       <section id="main_content" class="inner">
-        <p>First of all we load the only package that we need and set the seed for reproducible results.</p>
+        <p>First of all we load the <em>caret</em> package and set the seed for reproducible results.</p>
 
 <div class="highlight highlight-r"><pre>library(<span class="pl-vo">caret</span>)
 set.seed(<span class="pl-c1">121212</span>)</pre></div>
@@ -89,7 +89,8 @@ We set the method to be <em>cross-validation</em> and 3 as the number of folds, 
 
 <div class="highlight highlight-r"><pre><span class="pl-vo">initTime</span>   <span class="pl-k">&lt;-</span> proc.time()
 <span class="pl-vo">modFit</span>     <span class="pl-k">&lt;-</span> train(<span class="pl-vo">training</span><span class="pl-k">$</span><span class="pl-vo">classe</span> <span class="pl-k">~</span> ., <span class="pl-v">data</span><span class="pl-k">=</span><span class="pl-vo">training</span>, <span class="pl-v">model</span><span class="pl-k">=</span><span class="pl-s1"><span class="pl-pds">"</span>rf<span class="pl-pds">"</span></span>, <span class="pl-v">trControl</span><span class="pl-k">=</span><span class="pl-vo">speedUp</span>)
-<span class="pl-vo">trainTime</span>  <span class="pl-k">&lt;-</span> proc.time() <span class="pl-k">-</span> <span class="pl-vo">initTime</span>; <span class="pl-vo">trainTime</span></pre></div>
+<span class="pl-vo">trainTime</span>  <span class="pl-k">&lt;-</span> proc.time() <span class="pl-k">-</span> <span class="pl-vo">initTime</span>
+<span class="pl-vo">trainTime</span></pre></div>
 
 <p>Let's look at the model:</p>
 
@@ -101,18 +102,39 @@ We set the method to be <em>cross-validation</em> and 3 as the number of folds, 
 confusionMatrix(<span class="pl-vo">testing</span><span class="pl-k">$</span><span class="pl-vo">classe</span>, <span class="pl-vo">testingPredict</span>)</pre></div>
 
 <p>Hence the accuracy is pretty high, and so the out-of-sample error,
-i.e. the total amount of wrong predictions in the testing set, related to its length, is particularly small:</p>
+i.e. the total amount of wrong predictions in the testing set related to the number of its elements, is particularly small:</p>
 
 <div class="highlight highlight-r"><pre><span class="pl-vo">testing</span><span class="pl-k">$</span><span class="pl-vo">predWrong</span> <span class="pl-k">&lt;-</span> <span class="pl-vo">testingPredict</span> <span class="pl-k">!=</span> <span class="pl-vo">testing</span><span class="pl-k">$</span><span class="pl-vo">classe</span>
 sum(<span class="pl-vo">testing</span><span class="pl-k">$</span><span class="pl-vo">predWrong</span>) <span class="pl-k">/</span> length(<span class="pl-vo">testingPredict</span>)</pre></div>
 
-<p>Here we have a list of the most important predictors:</p>
+<p>We can also try to use <code>randomForest()</code> from the <em>randomForest</em> package, hoping for best perfomances (as suggested in the discussion forum).
+Similarly to what we've done with <code>trainControl()</code>, we use <code>tuneRF()</code> to understand the optimal setting.</p>
 
-<div class="highlight highlight-r"><pre>varImp(<span class="pl-vo">modFit</span>)</pre></div>
+<div class="highlight highlight-r"><pre>library(<span class="pl-vo">randomForest</span>)
+<span class="pl-vo">speedUpRF</span> <span class="pl-k">&lt;-</span> tuneRF(<span class="pl-vo">training</span>[<span class="pl-k">-</span><span class="pl-c1">53</span>],<span class="pl-vo">training</span><span class="pl-k">$</span><span class="pl-vo">classe</span>, <span class="pl-v">ntreeTry</span><span class="pl-k">=</span><span class="pl-c1">100</span>,<span class="pl-v">stepFactor</span><span class="pl-k">=</span><span class="pl-c1">1.5</span>,<span class="pl-v">improve</span><span class="pl-k">=</span><span class="pl-c1">0.01</span>, <span class="pl-v">trace</span><span class="pl-k">=</span><span class="pl-c1">TRUE</span>, <span class="pl-v">plot</span><span class="pl-k">=</span><span class="pl-c1">TRUE</span>, <span class="pl-v">dobest</span><span class="pl-k">=</span><span class="pl-c1">FALSE</span>)</pre></div>
 
-<p>We show as an example a plot of the two most important predictors which puts in evidence where the prediction is true or false.</p>
+<p>So we make our second trial using <code>randomForest()</code>, and according to this output we set <code>mtry=10</code>, again saving the processing time.</p>
 
-<div class="highlight highlight-r"><pre>qplot(<span class="pl-vo">roll_belt</span>,<span class="pl-vo">yaw_belt</span>,<span class="pl-v">colour</span><span class="pl-k">=</span><span class="pl-vo">predWrong</span>,<span class="pl-v">data</span><span class="pl-k">=</span><span class="pl-vo">testing</span>)</pre></div>
+<div class="highlight highlight-r"><pre><span class="pl-vo">initTime</span>   <span class="pl-k">&lt;-</span> proc.time()
+<span class="pl-vo">modFitRF</span> <span class="pl-k">&lt;-</span>randomForest(<span class="pl-vo">classe</span><span class="pl-k">~</span>.,<span class="pl-v">data</span><span class="pl-k">=</span><span class="pl-vo">training</span>, <span class="pl-v">mtry</span><span class="pl-k">=</span><span class="pl-c1">10</span>, <span class="pl-v">ntree</span><span class="pl-k">=</span><span class="pl-c1">100</span>,<span class="pl-v">keep.forest</span><span class="pl-k">=</span><span class="pl-c1">TRUE</span>, <span class="pl-v">importance</span><span class="pl-k">=</span><span class="pl-c1">TRUE</span>,<span class="pl-v">test</span><span class="pl-k">=</span><span class="pl-vo">testing</span>)
+<span class="pl-vo">randomForestTime</span>  <span class="pl-k">&lt;-</span> proc.time() <span class="pl-k">-</span> <span class="pl-vo">initTime</span>
+<span class="pl-vo">randomForestTime</span></pre></div>
+
+<p>It turns out that this alternative method is <code>r paste(round(trainTime[3]/randomForestTime[3],1))</code> times faster than the use that we made of <code>train()</code>!</p>
+
+<p>Again, just to be sure that this new model is good, we check the out-of-sample error.</p>
+
+<div class="highlight highlight-r"><pre><span class="pl-vo">testingPredictRF</span> <span class="pl-k">&lt;-</span> predict(<span class="pl-vo">modFitRF</span>, <span class="pl-v">newdata</span><span class="pl-k">=</span><span class="pl-vo">testing</span>)
+confusionMatrix(<span class="pl-vo">testing</span><span class="pl-k">$</span><span class="pl-vo">classe</span>, <span class="pl-vo">testingPredictRF</span>)
+<span class="pl-vo">testing</span><span class="pl-k">$</span><span class="pl-vo">predWrongRF</span> <span class="pl-k">&lt;-</span> <span class="pl-vo">testingPredictRF</span> <span class="pl-k">!=</span> <span class="pl-vo">testing</span><span class="pl-k">$</span><span class="pl-vo">classe</span>
+sum(<span class="pl-vo">testing</span><span class="pl-k">$</span><span class="pl-vo">predWrongRF</span>) <span class="pl-k">/</span> length(<span class="pl-vo">testingPredictRF</span>)</pre></div>
+
+<p>The error rate is even smaller!</p>
+
+<p>We conclude the analysis plotting a summary of the variable importance, according to mean decrease in accuracy and mean decrease in Gini.</p>
+
+<pre lang="r,"><code>varImpPlot(modFitRF)
+</code></pre>
       </section>
     </div>
 
