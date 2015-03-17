@@ -6,7 +6,7 @@ output:
     theme: united
 ---
 
-First of all we load the only package that we need and set the seed for reproducible results.
+First of all we load the *caret* package and set the seed for reproducible results.
 ```{r}
 library(caret)
 set.seed(121212)
@@ -71,7 +71,8 @@ So we are ready to make our first trial using *Random Forests*. We also evaluate
 ```{r}
 initTime   <- proc.time()
 modFit     <- train(training$classe ~ ., data=training, model="rf", trControl=speedUp)
-trainTime  <- proc.time() - initTime; trainTime
+trainTime  <- proc.time() - initTime
+trainTime
 ```
 
 Let's look at the model:
@@ -86,18 +87,40 @@ confusionMatrix(testing$classe, testingPredict)
 ```
 
 Hence the accuracy is pretty high, and so the out-of-sample error,
-i.e. the total amount of wrong predictions in the testing set, related to its length, is particularly small:
+i.e. the total amount of wrong predictions in the testing set related to the number of its elements, is particularly small:
 ```{r}
 testing$predWrong <- testingPredict != testing$classe
 sum(testing$predWrong) / length(testingPredict)
 ```
 
-Here we have a list of the most important predictors:
+We can also try to use `randomForest()` from the *randomForest* package, hoping for best perfomances (as suggested in the discussion forum).
+Similarly to what we've done with `trainControl()`, we use `tuneRF()` to understand the optimal setting.
 ```{r}
-varImp(modFit)
+library(randomForest)
+speedUpRF <- tuneRF(training[-53],training$classe, ntreeTry=100,stepFactor=1.5,improve=0.01, trace=TRUE, plot=TRUE, dobest=FALSE)
 ```
 
-We show as an example a plot of the two most important predictors which puts in evidence where the prediction is true or false.
-```{r, eval=FALSE}
-qplot(roll_belt,yaw_belt,colour=predWrong,data=testing)
+So we make our second trial using `randomForest()`, and according to this output we set `mtry=10`, again saving the processing time.
+```{r}
+initTime   <- proc.time()
+modFitRF <-randomForest(classe~.,data=training, mtry=10, ntree=100,keep.forest=TRUE, importance=TRUE,test=testing)
+randomForestTime  <- proc.time() - initTime
+randomForestTime
+```
+
+It turns out that this alternative method is `r paste(round(trainTime[3]/randomForestTime[3],1))` times faster than the use that we made of `train()`!
+
+Again, just to be sure that this new model is good, we check the out-of-sample error.
+```{r}
+testingPredictRF <- predict(modFitRF, newdata=testing)
+confusionMatrix(testing$classe, testingPredictRF)
+testing$predWrongRF <- testingPredictRF != testing$classe
+sum(testing$predWrongRF) / length(testingPredictRF)
+```
+
+The error rate is even smaller!
+
+We conclude the analysis plotting a summary of the variable importance, according to mean decrease in accuracy and mean decrease in Gini.
+```{r, fig.align='center', fig.height=9, fig.width=12}
+varImpPlot(modFitRF)
 ```
