@@ -1,4 +1,76 @@
 <!DOCTYPE html>
+<<<<<<< HEAD
+=======
+<html>
+
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <meta name="description" content="Emil Zonta - Practical Machine Learning Course Project : R markdown and compiled HTML file describing my analysis for Practical Machine Learning Course Project.">
+
+    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
+
+    <title>Emil Zonta - Practical Machine Learning Course Project</title>
+  </head>
+
+  <body>
+
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <header class="inner">
+          <a id="forkme_banner" href="https://github.com/emilzonta/PracticalMachineLearning">View on GitHub</a>
+
+          <h1 id="project_title">Emil Zonta - Practical Machine Learning Course Project</h1>
+          <h2 id="project_tagline">R markdown and compiled HTML file describing my analysis for Practical Machine Learning Course Project.</h2>
+
+            <section id="downloads">
+              <a class="zip_download_link" href="https://github.com/emilzonta/PracticalMachineLearning/zipball/master">Download this project as a .zip file</a>
+              <a class="tar_download_link" href="https://github.com/emilzonta/PracticalMachineLearning/tarball/master">Download this project as a tar.gz file</a>
+            </section>
+        </header>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer">
+      <section id="main_content" class="inner">
+        <p>First of all we load the <em>caret</em> package and set the seed for reproducible results.</p>
+
+<div class="highlight highlight-r"><pre>library(<span class="pl-vo">caret</span>)
+set.seed(<span class="pl-c1">121212</span>)</pre></div>
+
+<p>Analyzing the raw data in the <em>pml-Training.csv</em> file we notice that there are a lot of <strong>missing</strong>, <strong>NA</strong>'s and <strong>#DIV/0!</strong> values.</p>
+
+<p>Then we load the data considering all of these values as NA's, to facilitate our task.</p>
+
+<div class="highlight highlight-r"><pre><span class="pl-vo">pmlTraining</span> <span class="pl-k">&lt;-</span> read.table(<span class="pl-s1"><span class="pl-pds">"</span>C://Users/emil.zonta/Desktop/pml-training.csv<span class="pl-pds">"</span></span>, <span class="pl-v">header</span><span class="pl-k">=</span><span class="pl-c1">TRUE</span> , <span class="pl-v">sep</span><span class="pl-k">=</span><span class="pl-s1"><span class="pl-pds">"</span>,<span class="pl-pds">"</span></span> , <span class="pl-v">na.strings</span><span class="pl-k">=</span>c(<span class="pl-s1"><span class="pl-pds">"</span><span class="pl-pds">"</span></span>,<span class="pl-s1"><span class="pl-pds">"</span>#DIV/0!<span class="pl-pds">"</span></span>,<span class="pl-s1"><span class="pl-pds">"</span>NA<span class="pl-pds">"</span></span>))
+dim(<span class="pl-vo">pmlTraining</span>)</pre></div>
+
+<p>So we have 160 columns but investigating a few with <code>summary(pmlTraining)</code>, and looking at some portions of the data,
+for example with a <em>unix-style</em> command like <code>tail(head(pmlTraining,n=29),n=10)</code>,
+we easily find that there are 19216 rows s.t. <code>new_window == 'no'</code> and this is exactly the amount of NA's in many columns:
+these columns have a non-missing value only correspondingly to <code>new_window == 'yes'</code>.</p>
+
+<p>We don't want to discard rows since some of their columns are useful, but we discard all of these columns with too many NA's
+since their meaningless for prediction. We filter our data using 19216 as a threshold:</p>
+
+<div class="highlight highlight-r"><pre><span class="pl-vo">pmlTraining</span> <span class="pl-k">&lt;-</span> <span class="pl-vo">pmlTraining</span>[,colSums(is.na(<span class="pl-vo">pmlTraining</span>)) <span class="pl-k">&lt;</span> <span class="pl-c1">19216</span>]
+dim(<span class="pl-vo">pmlTraining</span>)</pre></div>
+
+<p>There are 60 columns left and now we just want to be sure that there are no remaining rows with NA's.
+We verify that all the rows are complete using the following combination of <code>any</code> and <code>is.na</code>:</p>
+
+<div class="highlight highlight-r"><pre><span class="pl-vo">rowWithNAs</span> <span class="pl-k">&lt;-</span> apply(<span class="pl-vo">pmlTraining</span>, <span class="pl-c1">1</span>, <span class="pl-k">function</span>(<span class="pl-vo">x</span>){any(is.na(<span class="pl-vo">x</span>))})
+sum(<span class="pl-vo">rowWithNAs</span>)</pre></div>
+
+<p>As shown the number of remaining rows with NA's is now equal to <strong>0</strong>.</p>
+
+<p>We still need to do some data-cleaning since there still are some useless columns like the already mentioned 
+<em>new_window</em>, <em>num_window</em>, the index <em>X</em>, <em>user_name</em> and <em>timestamps</em>.
+All of these columns have nothing to do with our prediction problem and we need to avoid them.</p>
+
+<div class="highlight highlight-r"><pre><span class="pl-vo">pmlTraining</span> <span class="pl-k">&lt;-</span> subset(<span class="pl-vo">pmlTraining</span>,<span class="pl-v">select</span><span class="pl-k">=</span><span class="pl-k">-</span>c(<span class="pl-vo">X</span>,<span class="pl-vo">user_name</span>,<span class="pl-vo">raw_timestamp_part_1</span>,<span class="pl-vo">raw_timestamp_part_2</span>,<span class="pl-vo">cvtd_timestamp</span>,<span class="pl-vo">new_window</span>,<span class="pl-vo">num_window</span>))
+dim(<span class="pl-vo">pmlTraining</span>)</pre></div>
+>>>>>>> origin/gh-pages
 
 <html xmlns="http://www.w3.org/1999/xhtml">
 
@@ -96,6 +168,7 @@ testing  &lt;- pmlTraining[-inTrain,]</code></pre>
 <p>Before fitting with <code>train()</code>, in order to speed it up, it’s useful to set some <em>computational nuances options</em> with the <code>trainControl()</code> function of <em>caret</em> package. We set the method to be <em>cross-validation</em> and 3 as the number of folds, which appears to be enough.</p>
 <pre class="r"><code>speedUp &lt;- trainControl(method=&quot;cv&quot;, number=3)</code></pre>
 <p>So we are ready to make our first trial using <em>Random Forests</em>. We also evaluate processing time.</p>
+<<<<<<< HEAD
 <pre class="r"><code>initTime   &lt;- proc.time()
 modFit     &lt;- train(training$classe ~ ., data=training, model=&quot;rf&quot;, trControl=speedUp)
 trainTime  &lt;- proc.time() - initTime; trainTime</code></pre>
@@ -196,6 +269,59 @@ sum(testing$predWrong) / length(testingPredict)</code></pre>
 $(document).ready(function () {
   $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
 });
+=======
+
+<div class="highlight highlight-r"><pre><span class="pl-vo">initTime</span>   <span class="pl-k">&lt;-</span> proc.time()
+<span class="pl-vo">modFit</span>     <span class="pl-k">&lt;-</span> train(<span class="pl-vo">training</span><span class="pl-k">$</span><span class="pl-vo">classe</span> <span class="pl-k">~</span> ., <span class="pl-v">data</span><span class="pl-k">=</span><span class="pl-vo">training</span>, <span class="pl-v">model</span><span class="pl-k">=</span><span class="pl-s1"><span class="pl-pds">"</span>rf<span class="pl-pds">"</span></span>, <span class="pl-v">trControl</span><span class="pl-k">=</span><span class="pl-vo">speedUp</span>)
+<span class="pl-vo">trainTime</span>  <span class="pl-k">&lt;-</span> proc.time() <span class="pl-k">-</span> <span class="pl-vo">initTime</span>
+<span class="pl-vo">trainTime</span></pre></div>
+
+<p>Let's look at the model:</p>
+
+<div class="highlight highlight-r"><pre><span class="pl-vo">modFit</span><span class="pl-k">$</span><span class="pl-vo">finalModel</span></pre></div>
+
+<p>The model looks very accurate, but we need to cross-validate it using the testing partition.</p>
+
+<div class="highlight highlight-r"><pre><span class="pl-vo">testingPredict</span> <span class="pl-k">&lt;-</span> predict(<span class="pl-vo">modFit</span>, <span class="pl-v">newdata</span><span class="pl-k">=</span><span class="pl-vo">testing</span>)
+confusionMatrix(<span class="pl-vo">testing</span><span class="pl-k">$</span><span class="pl-vo">classe</span>, <span class="pl-vo">testingPredict</span>)</pre></div>
+
+<p>Hence the accuracy is pretty high, and so the out-of-sample error,
+i.e. the total amount of wrong predictions in the testing set related to the number of its elements, is particularly small:</p>
+
+<div class="highlight highlight-r"><pre><span class="pl-vo">testing</span><span class="pl-k">$</span><span class="pl-vo">predWrong</span> <span class="pl-k">&lt;-</span> <span class="pl-vo">testingPredict</span> <span class="pl-k">!=</span> <span class="pl-vo">testing</span><span class="pl-k">$</span><span class="pl-vo">classe</span>
+sum(<span class="pl-vo">testing</span><span class="pl-k">$</span><span class="pl-vo">predWrong</span>) <span class="pl-k">/</span> length(<span class="pl-vo">testingPredict</span>)</pre></div>
+
+<p>We can also try to use <code>randomForest()</code> from the <em>randomForest</em> package, hoping for best perfomances (as suggested in the discussion forum).
+Similarly to what we've done with <code>trainControl()</code>, we use <code>tuneRF()</code> to understand the optimal setting.</p>
+
+<div class="highlight highlight-r"><pre>library(<span class="pl-vo">randomForest</span>)
+<span class="pl-vo">speedUpRF</span> <span class="pl-k">&lt;-</span> tuneRF(<span class="pl-vo">training</span>[<span class="pl-k">-</span><span class="pl-c1">53</span>],<span class="pl-vo">training</span><span class="pl-k">$</span><span class="pl-vo">classe</span>, <span class="pl-v">ntreeTry</span><span class="pl-k">=</span><span class="pl-c1">100</span>,<span class="pl-v">stepFactor</span><span class="pl-k">=</span><span class="pl-c1">1.5</span>,<span class="pl-v">improve</span><span class="pl-k">=</span><span class="pl-c1">0.01</span>, <span class="pl-v">trace</span><span class="pl-k">=</span><span class="pl-c1">TRUE</span>, <span class="pl-v">plot</span><span class="pl-k">=</span><span class="pl-c1">TRUE</span>, <span class="pl-v">dobest</span><span class="pl-k">=</span><span class="pl-c1">FALSE</span>)</pre></div>
+
+<p>So we make our second trial using <code>randomForest()</code>, and according to this output we set <code>mtry=10</code>, again saving the processing time.</p>
+
+<div class="highlight highlight-r"><pre><span class="pl-vo">initTime</span>   <span class="pl-k">&lt;-</span> proc.time()
+<span class="pl-vo">modFitRF</span> <span class="pl-k">&lt;-</span>randomForest(<span class="pl-vo">classe</span><span class="pl-k">~</span>.,<span class="pl-v">data</span><span class="pl-k">=</span><span class="pl-vo">training</span>, <span class="pl-v">mtry</span><span class="pl-k">=</span><span class="pl-c1">10</span>, <span class="pl-v">ntree</span><span class="pl-k">=</span><span class="pl-c1">100</span>,<span class="pl-v">keep.forest</span><span class="pl-k">=</span><span class="pl-c1">TRUE</span>, <span class="pl-v">importance</span><span class="pl-k">=</span><span class="pl-c1">TRUE</span>,<span class="pl-v">test</span><span class="pl-k">=</span><span class="pl-vo">testing</span>)
+<span class="pl-vo">randomForestTime</span>  <span class="pl-k">&lt;-</span> proc.time() <span class="pl-k">-</span> <span class="pl-vo">initTime</span>
+<span class="pl-vo">randomForestTime</span></pre></div>
+
+<p>It turns out that this alternative method is <code>r paste(round(trainTime[3]/randomForestTime[3],1))</code> times faster than the use that we made of <code>train()</code>!</p>
+
+<p>Again, just to be sure that this new model is good, we check the out-of-sample error.</p>
+
+<div class="highlight highlight-r"><pre><span class="pl-vo">testingPredictRF</span> <span class="pl-k">&lt;-</span> predict(<span class="pl-vo">modFitRF</span>, <span class="pl-v">newdata</span><span class="pl-k">=</span><span class="pl-vo">testing</span>)
+confusionMatrix(<span class="pl-vo">testing</span><span class="pl-k">$</span><span class="pl-vo">classe</span>, <span class="pl-vo">testingPredictRF</span>)
+<span class="pl-vo">testing</span><span class="pl-k">$</span><span class="pl-vo">predWrongRF</span> <span class="pl-k">&lt;-</span> <span class="pl-vo">testingPredictRF</span> <span class="pl-k">!=</span> <span class="pl-vo">testing</span><span class="pl-k">$</span><span class="pl-vo">classe</span>
+sum(<span class="pl-vo">testing</span><span class="pl-k">$</span><span class="pl-vo">predWrongRF</span>) <span class="pl-k">/</span> length(<span class="pl-vo">testingPredictRF</span>)</pre></div>
+
+<p>The error rate is even smaller!</p>
+
+<p>We conclude the analysis plotting a summary of the variable importance, according to mean decrease in accuracy and mean decrease in Gini.</p>
+
+<pre lang="r,"><code>varImpPlot(modFitRF)
+</code></pre>
+      </section>
+    </div>
+>>>>>>> origin/gh-pages
 
 </script>
 
